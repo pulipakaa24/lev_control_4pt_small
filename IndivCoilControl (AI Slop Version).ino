@@ -8,7 +8,7 @@
 #include <Wire.h>
 
 // ----------------------------
-// IMU (Gyro/Accel) for roll control
+// IMU (Gyro/Accel) for roll control 
 // ----------------------------
 Adafruit_MPU6050 mpu;            // IMU device (MPU6050)
 
@@ -189,7 +189,7 @@ void loop() {
     // Read height sensors (yours)
     // ----------------------------
     dist_raw = analogRead(ind0Pin);
-    dist     = ind2mm(ind0Map, dist_raw)
+    dist     = ind2mm(ind0Map, dist_raw);
     Serial.print(dist);
     Serial.print(", ");
 
