@@ -24,7 +24,7 @@ private:
   IndSensorMap consts;
   uint8_t pin;
 
-  // Read sensor and convert to millimeters
+  // helper function to convert analog reading to millimeters
   float toMM(unsigned int raw);
 };
 
