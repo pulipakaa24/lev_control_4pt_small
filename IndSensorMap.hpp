@@ -17,6 +17,6 @@ extern IndSensorMap ind2Map;
 extern IndSensorMap ind3Map;
 
 // Convert raw analog reading to millimeters using sensor calibration
-float ind2mm(IndSensorMap ind, unsigned int raw);
+float indToMM(IndSensorMap ind, unsigned int raw);
 
 #endif // IND_SENSOR_MAP_HPP

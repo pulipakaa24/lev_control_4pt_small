@@ -8,6 +8,6 @@ IndSensorMap ind2Map = {-9.824360913609562, 871.4744633266955, 0.290936623509330
 IndSensorMap ind3Map = {-13.891292062248292, 990.6819962477331, 0.16376045588859353, -0.074904004740735, 0.17727132893449118};
 
 // Convert raw analog reading to millimeters using sensor calibration
-float ind2mm(IndSensorMap ind, unsigned int raw) {
+float indToMM(IndSensorMap ind, unsigned int raw) {
   return ind.C - (1.0 / ind.B) * log(pow((ind.K - ind.A) / ((float)raw - ind.A), ind.v) - 1.0);
 }

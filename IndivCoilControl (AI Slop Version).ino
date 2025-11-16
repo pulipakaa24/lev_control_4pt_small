@@ -123,7 +123,7 @@ static inline float clamp90(float x) { return clampf(x, -90.0f, 90.0f); }
 // prototypes (so we can keep your function layout)
 void send_pwm1(int val);
 void send_pwm2(int val);
-float ind2mm(IndSensorMap ind, unsigned int raw);
+float indToMM(IndSensorMap ind, unsigned int raw);
 int levitate(float e, float de, float ecum_local, int oor);
 int levitate2(float e, float de, float ecum_local, int oor);
 
@@ -189,7 +189,7 @@ void loop() {
     // Read height sensors (yours)
     // ----------------------------
     dist_raw = analogRead(ind0Pin);
-    dist     = ind2mm(ind0Map, dist_raw);
+    dist     = indToMM(ind0Map, dist_raw);
     Serial.print(dist);
     Serial.print(", ");
 
@@ -376,6 +376,6 @@ void send_pwm2(int val) {
 // float_map() — ADC→distance mapping (yours)
 // ----------------------------
 // Uses John and Adi's sensor calibration to return the millimeter reading from an analog sensor value.
-float ind2mm(IndSensorMap ind, unsigned int raw) {
+float indToMM(IndSensorMap ind, unsigned int raw) {
   return ind.C - (1.0 / ind.B) * log(pow((ind.K - ind.A) / ((float)raw - ind.A), ind.v) - 1.0);
 }
