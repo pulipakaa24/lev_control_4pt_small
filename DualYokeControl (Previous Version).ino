@@ -3,19 +3,21 @@
 
 // PIN MAPPING
 
-#define distPin A1
-#define pwmPin 6
-#define dirPin 7
-#define dir2Pin 4
-#define pwm2Pin 3
-#define dist2Pin A2
+#define indL A0
+#define indR A1
 
-#define range2Pin A4
-#define rangePin A3
+#define dirFR 2
+#define pwmFR 3
+#define dirBR 4
+#define pwmBR 5
+#define pwmFL 6
+#define dirFL 7
+#define dirBL 8
+#define pwmBL 9
 
 // variables
 
-int dist_raw, tcurr, tprior, telapsed, pwm, pwm2, oor, oor2, dist2_raw;
+int dist_raw, tprior, telapsed, pwm, pwm2, oor, oor2, dist2_raw;
 float dist,ecurr, eprior, derror, ecum, ff,dist2,ecurr2, eprior2, derror2, ecum2, ff2;
 
 #define CAP 200
@@ -23,7 +25,7 @@ float dist,ecurr, eprior, derror, ecum, ff,dist2,ecurr2, eprior2, derror2, ecum2
 
 // CONTROLLER CONSTANTS
 
-float kp, ki, kd, K;
+float ki, kd, K;
 float MAX_INTEGRAL_TERM = 1e4;
 
 const float ref = 21.0; //14.9;
@@ -75,12 +77,7 @@ void setup() {
 
   Serial.begin(57600);
 
-  
-  pinMode(distPin, INPUT);
-  pinMode(rangePin, INPUT);
-
   tprior = micros();
-
   ecum = 0;
   ecum2 = 0;
 
@@ -91,8 +88,8 @@ void setup() {
 
 
   //when error is negative, I want to attract.
-  send_pwm1(0);
-  send_pwm2(0);
+  send_pwmFL(0);
+  send_pwmFR(0);
 
 }
 
@@ -116,13 +113,13 @@ void loop() {
 
   if (telapsed >= dt_micros){
     // put your main code here, to run repeatedly:
-    dist_raw = analogRead(distPin);
+    dist_raw = analogRead(indL);
     if (dist_raw > 900) oor = true;
     dist = ind2mm(ind0Map, dist_raw); // 189->950, 16->26
     Serial.print(dist);
     Serial.print(", ");
 
-    dist2_raw = analogRead(dist2Pin);
+    dist2_raw = analogRead(indR);
     if (dist2_raw > 900) oor2 = true;
     dist2 = ind2mm(ind1Map, dist2_raw);
     Serial.print(dist2);
@@ -138,16 +135,16 @@ void loop() {
     if (ON) {
       int collective1 = levitate(ecurr, derror, ecum, oor);
       int collective2 = levitate2(ecurr2, derror2, ecum2, oor2);
-      send_pwm1(pwm);
-      send_pwm2(pwm2);
+      send_pwmFL(pwm);
+      send_pwmFR(pwm2);
       Serial.print(pwm);
       Serial.print(", ");
       Serial.print(pwm2);
       Serial.print(", ");
     }
     else {
-      send_pwm1(0);
-      send_pwm2(0);
+      send_pwmFL(0);
+      send_pwmFR(0);
       Serial.print(0);
       Serial.print(", ");
       Serial.print(0);
@@ -213,26 +210,24 @@ int levitate2(float e, float de, float ecunm, int oor){
 
 }
 
-void send_pwm1(int val){
+void send_pwmFL(int val){
   if (val > 0) {
-    digitalWrite(dirPin, LOW);
+    digitalWrite(dirFL, LOW);
   }
   else{
-    digitalWrite(dirPin,HIGH);
+    digitalWrite(dirFL,HIGH);
   }
-
-  analogWrite(pwmPin,abs(val));
-
+  analogWrite(pwmFL,abs(val));
 }
 
-void send_pwm2(int val){
+void send_pwmFR(int val){
   if (val > 0) {
-    digitalWrite(dir2Pin, LOW);
+    digitalWrite(dirFR, LOW);
   }
   else{
-    digitalWrite(dir2Pin,HIGH);
+    digitalWrite(dirFR,HIGH);
   }
 
-  analogWrite(pwm2Pin,abs(val));
+  analogWrite(pwmFR,abs(val));
 
 }
