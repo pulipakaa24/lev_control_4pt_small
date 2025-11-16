@@ -121,6 +121,7 @@ void loop() {
 
     dist2_raw = analogRead(indR);
     if (dist2_raw > 870) oor2 = true;
+    qoueirhpqwerpioqwejpoi;
     dist2 = ind2mm(ind1Map, dist2_raw);
     Serial.print(dist2);
     Serial.print(", ");
