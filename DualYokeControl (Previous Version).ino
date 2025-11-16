@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "IndSensorMap.hpp"
 
 // PIN MAPPING
 
@@ -9,17 +10,13 @@ const int dir2Pin = 4;
 const int pwm2Pin = 3;
 const int dist2Pin = A2;
 
-
 const int range2Pin = A4;
 const int rangePin = A3;
 
 // variables
 
-int dist_raw, oor, t0, tcurr, tprior, telapsed, pwm, pwm2, dist2_raw, oor2;
+int dist_raw, tcurr, tprior, telapsed, pwm, pwm2, oor, oor2, dist2_raw;
 float dist,ecurr, eprior, derror, ecum, ff,dist2,ecurr2, eprior2, derror2, ecum2, ff2;
-
-const float sensor_gain = 10.0 / (712-200.0);
-const float offset = 8;
 
 const int CAP = 200;
 
@@ -31,6 +28,9 @@ float MAX_INTEGRAL_TERM = 1e4;
 
 const float ref = 21.0; //14.9;
 const float ref2 = 22.0; //14.9;
+
+const float refL = (ref + ref2) / 2;
+const float refR = refL;
 
 const float K_current = 1;
 const float ki_current = 0;
@@ -79,8 +79,7 @@ void setup() {
   pinMode(distPin, INPUT);
   pinMode(rangePin, INPUT);
 
-  t0 = micros();
-  tprior = t0;
+  tprior = micros();
 
   ecum = 0;
   ecum2 = 0;
@@ -118,32 +117,30 @@ void loop() {
   if (telapsed >= dt_micros){
     // put your main code here, to run repeatedly:
     dist_raw = analogRead(distPin);
-    dist = float_map(dist_raw, 189, 950, 16, 26); // 189->950, 16->26
+    if (dist_raw > 900) oor = true;
+    dist = ind2mm(ind0Map, dist_raw); // 189->950, 16->26
     Serial.print(dist);
     Serial.print(", ");
 
     dist2_raw = analogRead(dist2Pin);
-    dist2 = float_map(dist2_raw, 189, 950, 16, 26);
+    if (dist2_raw > 900) oor2 = true;
+    dist2 = ind2mm(ind1Map, dist2_raw);
     Serial.print(dist2);
     Serial.print(", ");
 
-    oor = (dist_raw <= 195); // naive oor 
-    oor2 = (dist2_raw <= 195); // naive oor
-    
-//
     ecurr = ref - dist;
-    //ecurr = dist - ref;
     derror = ecurr - eprior;
 
     ecurr2 = ref2 - dist2;
-    //ecurr2 = dist2 - ref2;
     derror2 = ecurr2 - eprior2;
 
     
     if (ON) {
-      int pwm1 = levitate(ecurr, derror, ecum, oor);
-      int pwm2 = levitate2(ecurr2, derror2, ecum2, oor2);
-      Serial.print(pwm1);
+      int collective1 = levitate(ecurr, derror, ecum, oor);
+      int collective2 = levitate2(ecurr2, derror2, ecum2, oor2);
+      send_pwm1(pwm);
+      send_pwm2(pwm2);
+      Serial.print(pwm);
       Serial.print(", ");
       Serial.print(pwm2);
       Serial.print(", ");
@@ -157,13 +154,8 @@ void loop() {
       Serial.print(", ");
     }
 
-    
     Serial.print(ON);
     
-    
-//    
-//    
-//
     tprior = micros();
     eprior = ecurr;
     eprior2 = ecurr2;
@@ -195,11 +187,10 @@ int levitate(float e, float de, float ecum, int oor){
     pwm = constrain(K*(e + ki*ecum + kd*de), -CAP,CAP);
 
   }
-  send_pwm1(pwm);
   return (int)pwm;
 }
 
-int levitate2(float e, float de, float ecum, int oor){
+int levitate2(float e, float de, float ecunm, int oor){
   if (oor){
     pwm2 = 0;
   }
@@ -218,7 +209,6 @@ int levitate2(float e, float de, float ecum, int oor){
     pwm2 = constrain(K*(e + ki*ecum + kd*de), -CAP,CAP);
 
   }
-  send_pwm2(pwm2);
   return (int)pwm2;
 
 }
@@ -245,12 +235,4 @@ void send_pwm2(int val){
 
   analogWrite(pwm2Pin,abs(val));
 
-}
-
-float float_map(int x, int in_min, int in_max, int out_min, int out_max){
-        float top = (float)((x-in_min) * (out_max-out_min));
-        return top / (float)(in_max - in_min) + (float)out_min;
-     
-
-  //return dist_raw * sensor_gain + offset;
 }
