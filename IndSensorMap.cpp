@@ -18,10 +18,11 @@ float IndSensor::toMM(unsigned int raw) {
 }
 
 // Read sensor directly from pin and convert to millimeters
-float IndSensor::read() {
+float IndSensor::readMM() {
   unsigned int raw = analogRead(pin);
   oor = (raw == 0 || raw > 870);  // Update out-of-range flag
-  return toMM(raw);
+  mmVal = toMM(raw);
+  return mmVal;
 }
 
 // Predefined sensor instances

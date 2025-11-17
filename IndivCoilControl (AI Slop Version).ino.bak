@@ -84,8 +84,8 @@ const float ref2 = 22.0;   // right yoke distance setpoint
 const float K_current  = 1;    // (kept for compatibility)
 const float ki_current = 0;    // (kept for compatibility)
 
-// FOR MC 1 (left yoke): separate gains when falling vs attracting
-const float K_f  = 40;     // falling (error > 0) — push down / reduce lift
+// FOR MC 1 (left yoke): separate gains when repelling vs attracting
+const float K_f  = 40;     // repelling (error > 0) — push down / reduce lift
 const float ki_f = 0.01;
 const float kd_f = 7;
 
