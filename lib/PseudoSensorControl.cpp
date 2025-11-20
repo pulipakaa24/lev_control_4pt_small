@@ -83,13 +83,26 @@ void PseudoSensorController::report() {
   Serial.print(Back.mmVal);
   Serial.print("mm,\n");
 
+  Serial.print("OOR - Left: ");
+  Serial.print(Left.oor);
+  Serial.print(", Right: ");
+  Serial.print(Right.oor);
+  Serial.print(", Front: ");
+  Serial.print(Front.oor);
+  Serial.print(", Back: ");
+  Serial.print(Back.oor);
+  Serial.print(",\n");
+
+  Serial.print("Overall OOR: ");
+  Serial.println(oor);
+
   Serial.print("PWMS - FL_PWM: ");
   Serial.print(PWMs[0]);
   Serial.print(", FR_PWM: ");
   Serial.print(PWMs[1]);
-  Serial.print("BL_PWM: ");
+  Serial.print(", BL_PWM: ");
   Serial.print(PWMs[2]);
-  Serial.print("BR_PWM: ");
+  Serial.print(", BR_PWM: ");
   Serial.print(PWMs[3]);
   Serial.print("\n");
 }

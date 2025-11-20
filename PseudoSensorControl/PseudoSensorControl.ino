@@ -2,7 +2,7 @@
 #include "IndSensorMap.hpp"
 #include "PseudoSensorControl.hpp"
 
-float refs[4] = {10.83,10.83,10.83,10.83};
+float refs[4] = {14,14,14,14};
 
 Constants repelling = {10000, 0, 50000};
 Constants attracting = {10000, 0, 50000};
@@ -15,6 +15,10 @@ K_MAP consts = {repelling, attracting};
 
 // Might be useful for things like jitter or lag.
 #define sampling_rate 1000 // Hz
+
+// EMA filter alpha value (all sensors use same alpha)
+#define alphaVal 0.3f
+
 
 // ABOVE THIS LINE IS TUNING VALUES ONLY, BELOW IS ACTUAL CODE.
 
@@ -31,6 +35,11 @@ int ON = 0;
 
 void setup() {
   Serial.begin(57600);
+
+  indL.alpha = alphaVal;
+  indR.alpha = alphaVal;
+  indF.alpha = alphaVal;
+  indB.alpha = alphaVal;
 
   tprior = micros();
   for (PinPair& mc : pinMap) {

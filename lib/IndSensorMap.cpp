@@ -9,8 +9,11 @@ IndSensorMap ind2Map = {-9.824360913609562, 871.4744633266955, 0.290936623509330
 IndSensorMap ind3Map = {-13.8907146886418, 990.6824637304771, 0.16376005385006073, -0.07513804021312243, 0.1772655198934789};
 
 // IndSensor class implementation
-IndSensor::IndSensor(IndSensorMap calibration, uint8_t analogPin)
-  : consts(calibration), pin(analogPin), oor(false) {}
+IndSensor::IndSensor(IndSensorMap calibration, uint8_t analogPin, float emaAlpha)
+  : consts(calibration), pin(analogPin), alpha(emaAlpha), oor(false), filteredRaw(0) {
+  // Initialize filtered value with first reading
+  filteredRaw = analogRead(pin);
+}
 
 // Convert raw analog reading to millimeters using sensor calibration
 float IndSensor::toMM(uint16_t raw) {
@@ -19,8 +22,14 @@ float IndSensor::toMM(uint16_t raw) {
 
 // Read sensor directly from pin and convert to millimeters
 float IndSensor::readMM() {
-  analog = analogRead(pin);
-  oor = (analog == 0 || analog > 870);  // Update out-of-range flag
+  uint16_t raw = constrain(analogRead(pin), 0, 900);
+  Serial.println(raw);
+  
+  // Exponential moving average filter
+  filteredRaw = alpha * raw + (1.0f - alpha) * filteredRaw;
+  
+  analog = (uint16_t)filteredRaw;
+  oor = (analog == 0 || analog > 870);
   mmVal = toMM(analog);
   return mmVal;
 }
