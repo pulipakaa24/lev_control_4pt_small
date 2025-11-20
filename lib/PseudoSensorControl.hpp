@@ -26,7 +26,7 @@ extern PinPair pinMap[4];
 #define CAP 200
 
 typedef struct Constants {
-  float K;
+  float kp;
   float ki;
   float kd;
 } Constants;

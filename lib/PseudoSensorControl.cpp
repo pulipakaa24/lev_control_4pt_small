@@ -59,7 +59,7 @@ void PseudoSensorController::control() {
 int16_t PseudoSensorController::pwmFunc(K_MAP consts, Errors errs) {
   if (oor) return 0;
   Constants constants = (errs.e < 0) ? consts.attracting : consts.repelling;
-  return (int)constrain(constants.K*(errs.e + constants.ki*errs.eInt + constants.kd*errs.eDiff), -(float)CAP,(float)CAP);
+  return (int)constrain(constants.kp*errs.e + constants.ki*errs.eInt + constants.kd*errs.eDiff, -(float)CAP,(float)CAP);
 }
 
 int16_t PseudoSensorController::slewLimit(int16_t target, int16_t prev) {
