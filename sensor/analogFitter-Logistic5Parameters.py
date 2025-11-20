@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 # --- Load CSV ---
-data = pd.read_csv(r'C:\Users\k28ad\OneDrive\Documents\sensor\Sensor3DataNew.csv')
+data = pd.read_csv(r'C:\Users\k28ad\OneDrive\Documents\GitHub\guadaloop_lev_control\sensor\Sensor3NewAverages.csv')
 x = data["x"].values
 # Stack them into a 2D array (shape: 5 × 100)
 # stacked = np.column_stack((data["y"].values, data["y2"].values, data["y3"].values, data["y4"].values, data["y5"].values))

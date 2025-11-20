@@ -47,14 +47,14 @@ class App:
             v = 0.2822807132259202
 
         if (sensor == 3):
-            A  = -13.891292062248292
-            K  = 990.6819962477331
-            B  = 0.16376045588859353
-            C  = -0.074904004740735
-            v = 0.17727132893449118
+            A  = -13.8907146886418
+            K  = 990.6824637304771
+            B  = 0.16376005385006073
+            C  = -0.07513804021312243
+            v = 0.1772655198934789
 
         #IMPORTANT: FOR SENSOR 3, INDUCTION SENSOR OUTPUTS VOLTAGE > 6 v
-        #SO WE USED NEW VOLTAGE DIVIDER: 220 OHMS, 550 OHMS
+        #SO WE USED NEW VOLTAGE DIVIDER: 20000 OHMS, 50000 OHMS
         y = float(analog)
         #print(y)
         real = C - (1.0 / B) * np.log((( (K - A) / (y - A) ) ** v) - 1.0)
