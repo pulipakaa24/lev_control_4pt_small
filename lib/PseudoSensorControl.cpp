@@ -57,7 +57,6 @@ void PseudoSensorController::control() {
 
   for (uint8_t i = 0; i < 4; i++) {
     float eCurr = Refs[i] - pseudos[i];
-    
     errors[i].eDiff = (eCurr - errors[i].e);
     
     // Only integrate when not out of range
