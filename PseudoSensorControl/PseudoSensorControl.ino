@@ -2,6 +2,7 @@
 #include "IndSensorMap.hpp"
 #include "PseudoSensorControl.hpp"
 #include "ADC.hpp"
+#include "FastPWM.hpp"
 
 float refs[4] = {12.9,12.3,12.6,12};
 
@@ -36,8 +37,8 @@ int ON = 0;
 
 void setup() {
   Serial.begin(115200);
-
   setupADC();
+  setupFastPWM();
 
   indL.alpha = alphaVal;
   indR.alpha = alphaVal;

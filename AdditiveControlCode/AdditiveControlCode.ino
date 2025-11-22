@@ -2,6 +2,7 @@
 #include "IndSensorMap.hpp"
 #include "Controller.hpp"
 #include "ADC.hpp"
+#include "FastPWM.hpp"
 
 // K, Ki, Kd Constants
 Constants repelling = {1000, 0, 10000};
@@ -50,6 +51,7 @@ int ON = 0;
 void setup() {
   Serial.begin(115200);
   setupADC();
+  setupFastPWM();
 
   indL.alpha = alphaVal;
   indR.alpha = alphaVal;

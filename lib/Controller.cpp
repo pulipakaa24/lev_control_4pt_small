@@ -40,14 +40,15 @@ void FullController::sendOutputs() {
   }
 
   // The following assumes 0 direction drives repulsion and 1 direction drives attraction.
+  // Using direct register writes to maintain fast PWM mode set by setupFastPWM()
   digitalWrite(dirFL, FLPWM < 0);
-  analogWrite(pwmFL, abs(FLPWM));
+  OCR2A = abs(FLPWM);  // Pin 11 -> Timer 2A
   digitalWrite(dirBL, BLPWM < 0);
-  analogWrite(pwmBL, abs(BLPWM));
+  OCR1A = abs(BLPWM);  // Pin 9 -> Timer 1A
   digitalWrite(dirFR, FRPWM < 0);
-  analogWrite(pwmFR, abs(FRPWM));
+  OCR2B = abs(FRPWM);  // Pin 3 -> Timer 2B
   digitalWrite(dirBR, BRPWM < 0);
-  analogWrite(pwmBR, abs(BRPWM));
+  OCR1B = abs(BRPWM);  // Pin 10 -> Timer 1B
 }
 
 void FullController::avgControl() {

@@ -30,11 +30,22 @@ void PseudoSensorController::zeroPWMs() {
 void PseudoSensorController::sendOutputs() {
   if (!outputOn) zeroPWMs();
 
-  for (uint8_t i = 0; i < 4; i++) {
-    // The following assumes 0 direction drives repulsion and 1 direction drives attraction.
-    digitalWrite(pinMap[i].dir, PWMs[i] < 0);
-    analogWrite(pinMap[i].pwm, abs(PWMs[i]));
-  }
+  // Using direct register writes to maintain fast PWM mode set by setupFastPWM()
+  // FL: Pin 11 -> Timer 2A
+  digitalWrite(dirFL, PWMs[0] < 0);
+  OCR2A = abs(PWMs[0]);
+  
+  // FR: Pin 3 -> Timer 2B
+  digitalWrite(dirFR, PWMs[1] < 0);
+  OCR2B = abs(PWMs[1]);
+  
+  // BL: Pin 9 -> Timer 1A
+  digitalWrite(dirBL, PWMs[2] < 0);
+  OCR1A = abs(PWMs[2]);
+  
+  // BR: Pin 10 -> Timer 1B
+  digitalWrite(dirBR, PWMs[3] < 0);
+  OCR1B = abs(PWMs[3]);
 }
 
 void PseudoSensorController::control() {

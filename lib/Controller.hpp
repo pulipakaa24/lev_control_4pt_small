@@ -8,8 +8,8 @@
 #define dirFR 2
 #define pwmFR 3
 #define dirBR 4
-#define pwmBR 5
-#define pwmFL 6
+#define pwmBR 10
+#define pwmFL 11
 #define dirFL 7
 #define dirBL 8
 #define pwmBL 9
