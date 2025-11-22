@@ -14,7 +14,7 @@
 #define dirBL 8
 #define pwmBL 9
 
-#define CAP 200
+#define CAP 250
 
 typedef struct Constants {
   float kp;
@@ -49,10 +49,9 @@ class FullController {
       : Left(l), Right(r), Front(f), Back(b), AvgRef(avgRef), LRDiffRef(lrDiffRef),
       FBDiffRef(fbDiffRef), avgConsts(fullConsts.avg), LConsts(fullConsts.lColl),
       FConsts(fullConsts.fColl), avgError({0,0,0}), LRDiffErr({0,0,0}), 
-      FBDiffErr({0,0,0}), oor(false), outputOn(false),
-      FLPrev(0), BLPrev(0), FRPrev(0), BRPrev(0), slewRateLimit(slewRate) {}
+      FBDiffErr({0,0,0}), oor(false), outputOn(false) {}
 
-    void update(float tDiff);
+    void update();
     void zeroPWMs();
     void sendOutputs();
     void report();
@@ -80,7 +79,7 @@ class FullController {
     float AvgRef;
     float LRDiffRef;
     float FBDiffRef;
-    float slewRateLimit;
+    float avg;
 
     int16_t avgPWM;
     int16_t LDiffPWM;
@@ -94,12 +93,5 @@ class FullController {
     int16_t BLPWM;
     int16_t FRPWM;
     int16_t BRPWM;
-
-    int16_t FLPrev;
-    int16_t BLPrev;
-    int16_t FRPrev;
-    int16_t BRPrev;
-
-    float tDiff;
 };
 #endif // CONTROLLER_HPP

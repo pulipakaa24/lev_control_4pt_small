@@ -23,7 +23,7 @@ typedef struct PinPair {
 extern PinPair pinMap[4];
 // FL, FR, BL, BR
 
-#define CAP 200
+#define CAP 255
 
 typedef struct Constants {
   float kp;

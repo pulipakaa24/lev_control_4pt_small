@@ -23,7 +23,6 @@ float IndSensor::toMM(uint16_t raw) {
 // Read sensor directly from pin and convert to millimeters
 float IndSensor::readMM() {
   uint16_t raw = constrain(analogRead(pin), 0, 900);
-  Serial.println(raw);
   
   // Exponential moving average filter
   filteredRaw = alpha * raw + (1.0f - alpha) * filteredRaw;

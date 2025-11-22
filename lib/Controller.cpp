@@ -4,9 +4,7 @@
 // CONTROLLER CONSTANTS
 float MAX_INTEGRAL_TERM = 1e4;
 
-void FullController::update(float tDiff) {
-  this->tDiff = tDiff; // store time step for use in differential and integral portions
-
+void FullController::update() {
   Left.readMM();
   Right.readMM();
   Front.readMM();
@@ -18,20 +16,15 @@ void FullController::update(float tDiff) {
   LRControl(); // run pwm functions.
   FBControl();
 
-  int16_t flTarget = avgPWM + LDiffPWM + FDiffPWM;
-  int16_t blTarget = avgPWM + LDiffPWM + BDiffPWM;
-  int16_t frTarget = avgPWM + RDiffPWM + FDiffPWM;
-  int16_t brTarget = avgPWM + RDiffPWM + BDiffPWM;
+  FLPWM = constrain(avgPWM + LDiffPWM + FDiffPWM, -CAP, CAP);
+  BLPWM = constrain(avgPWM + LDiffPWM + BDiffPWM, -CAP, CAP);
+  FRPWM = constrain(avgPWM + RDiffPWM + FDiffPWM, -CAP, CAP);
+  BRPWM = constrain(avgPWM + RDiffPWM + BDiffPWM, -CAP, CAP);
 
-  FLPWM = slewLimit(flTarget, FLPrev);
-  BLPWM = slewLimit(blTarget, BLPrev);
-  FRPWM = slewLimit(frTarget, FRPrev);
-  BRPWM = slewLimit(brTarget, BRPrev);
-
-  FLPrev = FLPWM;
-  BLPrev = BLPWM;
-  FRPrev = FRPWM;
-  BRPrev = BRPWM;
+  // FLPWM = avgPWM;
+  // BLPWM = avgPWM;
+  // FRPWM = avgPWM;
+  // BRPWM = avgPWM;
 }
 
 void FullController::zeroPWMs() {
@@ -58,12 +51,14 @@ void FullController::sendOutputs() {
 }
 
 void FullController::avgControl() {
-  float avg = (Left.mmVal + Right.mmVal + Front.mmVal + Back.mmVal) * 0.25f;
+  avg = (Left.mmVal + Right.mmVal + Front.mmVal + Back.mmVal) * 0.25f;
   float eCurr = AvgRef - avg;
 
-  avgError.eDiff = (tDiff == 0.0) ? 0:(eCurr - avgError.e) / tDiff; // rise over run
-  avgError.eInt += eCurr * tDiff;
-  avgError.eInt = constrain(avgError.eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+  avgError.eDiff = eCurr - avgError.e;
+  if (!oor) {
+    avgError.eInt += eCurr;
+    avgError.eInt = constrain(avgError.eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+  }
   avgError.e = eCurr;
 
   avgPWM = pwmFunc(avgConsts, avgError);
@@ -74,9 +69,13 @@ void FullController::LRControl() {
   float eCurr = diff - LRDiffRef; // how different is that from the reference? positive -> Left repels, Right attracts.
   K_MAP rConsts = {LConsts.attracting, LConsts.repelling}; // apply attracting to repelling and vice versa.
 
-  LRDiffErr.eDiff = (tDiff == 0.0) ? 0:(eCurr - LRDiffErr.e) / tDiff;
-  LRDiffErr.eInt += eCurr * tDiff;
-  LRDiffErr.eInt = constrain(LRDiffErr.eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+  LRDiffErr.eDiff = eCurr - LRDiffErr.e;
+
+  if (!oor) {
+    LRDiffErr.eInt += eCurr;
+    LRDiffErr.eInt = constrain(LRDiffErr.eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+  }
+
   LRDiffErr.e = eCurr;
 
   LDiffPWM = pwmFunc(LConsts, LRDiffErr);
@@ -88,9 +87,13 @@ void FullController::FBControl() {
   float eCurr = diff - FBDiffRef; // how different is that from ref? pos.->Front must repel, Back must attract
   K_MAP bConsts = {FConsts.attracting, FConsts.repelling};
 
-  FBDiffErr.eDiff = (tDiff == 0.0) ? 0:(eCurr - FBDiffErr.e) / tDiff;
-  FBDiffErr.eInt += eCurr * tDiff;
-  FBDiffErr.eInt = constrain(FBDiffErr.eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+  FBDiffErr.eDiff = eCurr - FBDiffErr.e;
+
+  if (!oor) {
+    FBDiffErr.eInt += eCurr;
+    FBDiffErr.eInt = constrain(FBDiffErr.eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+  }
+  
   FBDiffErr.e = eCurr;
 
   FDiffPWM = pwmFunc(FConsts, FBDiffErr);
@@ -103,13 +106,6 @@ int16_t FullController::pwmFunc(K_MAP consts, Errors errs) {
   return (int)constrain(constants.kp*errs.e + constants.ki*errs.eInt + constants.kd*errs.eDiff, -(float)CAP,(float)CAP);
 }
 
-int16_t FullController::slewLimit(int16_t target, int16_t prev) {
-  int16_t maxChange = (int16_t)(slewRateLimit * tDiff);
-  int16_t delta = target - prev;
-  if (abs(delta) <= maxChange) return target;
-  return prev + (delta > 0 ? maxChange : -maxChange);
-}
-
 void FullController::report() {
   Serial.print("SENSORS - Left: ");
   Serial.print(Left.mmVal);
@@ -120,6 +116,8 @@ void FullController::report() {
   Serial.print("mm, Back: ");
   Serial.print(Back.mmVal);
   Serial.print("mm,\n");
+  Serial.print("AVG - ");
+  Serial.println(avg);
 
   Serial.print("PWMS - FL_PWM: ");
   Serial.print(FLPWM);

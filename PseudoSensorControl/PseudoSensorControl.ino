@@ -2,10 +2,10 @@
 #include "IndSensorMap.hpp"
 #include "PseudoSensorControl.hpp"
 
-float refs[4] = {14,14,14,14};
+float refs[4] = {12.9,12.3,12.6,12};
 
-Constants repelling = {10000, 0, 50000};
-Constants attracting = {10000, 0, 50000};
+Constants repelling = {250, 0, 20000};
+Constants attracting = {250, 0, 20000};
 
 K_MAP consts = {repelling, attracting};
 
@@ -34,7 +34,7 @@ const int dt_micros = 1e6/sampling_rate;
 int ON = 0;
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(115200);
 
   indL.alpha = alphaVal;
   indR.alpha = alphaVal;
@@ -54,7 +54,7 @@ void loop() {
     char c = Serial.read();
     while(Serial.available()) Serial.read(); // flush remaining
 
-    controller.outputOn = (c != '0');
+    controller.outputOn = (c != '0' && c != 'r'); // planning to add r command to set refernce or smth
   }
   
   tDiffMicros = micros() - tprior;

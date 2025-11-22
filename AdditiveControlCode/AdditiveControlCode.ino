@@ -3,21 +3,21 @@
 #include "Controller.hpp"
 
 // K, Ki, Kd Constants
-Constants repelling = {40, 0.01, 7};
-Constants attracting = {20, 0.01, 20};
+Constants repelling = {1000, 0, 10000};
+Constants attracting = {1000, 0, 10000};
 
-Constants RollLeftUp = {30, 0.01, 15};
-Constants RollLeftDown = {30, 0.01, 15};
+Constants RollLeftUp = {500, 0, 10000};
+Constants RollLeftDown = {500, 0, 10000};
 
-Constants RollFrontUp = {30, 0.01, 15};
-Constants RollFrontDown = {30, 0.01, 15};
+Constants RollFrontUp = {500, 0, 10000};
+Constants RollFrontDown = {500, 0, 10000};
 
 // Reference values for average dist, 
-float avgRef = 21.0; // TBD: what is our equilibrium height with this testrig?
+float avgRef = 12.0; // TBD: what is our equilibrium height with this testrig?
 float LRDiffRef = 0.0; // TBD: what is our left-right balance equilibrium? Positive -> left is above right
-float FBDiffRef = 0.0; // TBD: what is front-back balance equilibrium? Positive -> front above back.
+float FBDiffRef = 2; // TBD: what is front-back balance equilibrium? Positive -> front above back.
 
-float slewRateLimit = 100.0; // max PWM change per control cycle (determined by 1 second / sampling rate)
+float slewRateLimit = 10000.0; // max PWM change per control cycle (determined by 1 second / sampling rate)
 // this was implemented by Claude and we can see if it helps.
 // Set it at or above 255 to make it have no effect.
 
@@ -44,7 +44,7 @@ const int dt_micros = 1e6/sampling_rate;
 int ON = 0;
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(115200);
 
   tprior = micros();
 
@@ -70,7 +70,7 @@ void loop() {
   tDiffMicros = micros() - tprior;
 
   if (tDiffMicros >= dt_micros){
-    controller.update((float)tDiffMicros / (float)1e6);
+    controller.update();
     controller.report();
     controller.sendOutputs(); 
     // this and the previous line can be switched if you want the PWMs to display 0 when controller off.

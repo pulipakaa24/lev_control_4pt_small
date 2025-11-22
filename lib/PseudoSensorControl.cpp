@@ -45,11 +45,16 @@ void PseudoSensorController::control() {
                       Back.mmVal + Right.mmVal - avg}; // BR
 
   for (uint8_t i = 0; i < 4; i++) {
-    float eCurr = Refs[i] - pseudos[i]; // Above reference is positive error.
+    float eCurr = Refs[i] - pseudos[i];
     
-    errors[i].eDiff = (eCurr - errors[i].e); // rise over run
-    errors[i].eInt += eCurr;
-    errors[i].eInt = constrain(errors[i].eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+    errors[i].eDiff = (eCurr - errors[i].e);
+    
+    // Only integrate when not out of range
+    if (!oor) {
+      errors[i].eInt += eCurr;
+      errors[i].eInt = constrain(errors[i].eInt, -MAX_INTEGRAL_TERM, MAX_INTEGRAL_TERM);
+    }
+    
     errors[i].e = eCurr;
 
     PWMs[i] = pwmFunc(Consts, errors[i]);
