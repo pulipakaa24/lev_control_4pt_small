@@ -3,11 +3,23 @@
 #include <math.h>
 #include "ADC.hpp"
 
-// Sensor calibration data
-IndSensorMap ind0Map = {-8.976076325826309, 913.5463710698101, 0.29767471011439534, 5.6686184386250025, 0.3627635461289861};
-IndSensorMap ind1Map = {-4.831976283950702, 885.9877001844566, 0.2793284618109283, 3.8852507844119217, 0.2389935455347361};
-IndSensorMap ind2Map = {-9.824360913609562, 871.4744633266955, 0.2909366235093304, 4.3307594408159495, 0.2822807132259202};
-IndSensorMap ind3Map = {-13.8907146886418, 990.6824637304771, 0.16376005385006073, -0.07513804021312243, 0.1772655198934789};
+// Sensor calibration data with pre-computed constants
+IndSensorMap ind0Map = {
+  -8.976076325826309, 913.5463710698101, 0.29767471011439534, 5.6686184386250025, 0.3627635461289861,
+  1.0f/0.29767471011439534f, 913.5463710698101f - (-8.976076325826309f)
+};
+IndSensorMap ind1Map = {
+  -4.831976283950702, 885.9877001844566, 0.2793284618109283, 3.8852507844119217, 0.2389935455347361,
+  1.0f/0.2793284618109283f, 885.9877001844566f - (-4.831976283950702f)
+};
+IndSensorMap ind2Map = {
+  -9.824360913609562, 871.4744633266955, 0.2909366235093304, 4.3307594408159495, 0.2822807132259202,
+  1.0f/0.2909366235093304f, 871.4744633266955f - (-9.824360913609562f)
+};
+IndSensorMap ind3Map = {
+  -13.8907146886418, 990.6824637304771, 0.16376005385006073, -0.07513804021312243, 0.1772655198934789,
+  1.0f/0.16376005385006073f, 990.6824637304771f - (-13.8907146886418f)
+};
 
 // IndSensor class implementation
 IndSensor::IndSensor(IndSensorMap calibration, uint8_t analogPin, float emaAlpha)
@@ -18,7 +30,12 @@ IndSensor::IndSensor(IndSensorMap calibration, uint8_t analogPin, float emaAlpha
 
 // Convert raw analog reading to millimeters using sensor calibration
 float IndSensor::toMM(uint16_t raw) {
-  return consts.C - (1.0 / consts.B) * log(pow((consts.K - consts.A) / ((float)raw - consts.A), consts.v) - 1.0);
+  // Optimized version using pre-computed constants and faster math functions
+  float raw_minus_A = (float)raw - consts.A;
+  float ratio = consts.K_minus_A / raw_minus_A;
+  float powered = powf(ratio, consts.v);
+  float inside_log = powered - 1.0f;
+  return consts.C - consts.invB * logf(inside_log);
 }
 
 // Read sensor directly from pin and convert to millimeters

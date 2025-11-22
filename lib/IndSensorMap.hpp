@@ -10,6 +10,10 @@ typedef struct IndSensorMap {
   float B;
   float C;
   float v;
+  
+  // Pre-computed constants for faster toMM()
+  float invB;      // 1.0 / B
+  float K_minus_A; // K - A
 } IndSensorMap;
 
 class IndSensor {
