@@ -2,3 +2,5 @@
 This Repo contains the code and data from sensor calibration as well as arduino code for 4-point control on the 2-yoke test rig in the ```PIDTesting-2yoke4coil``` directory.
 
 This code is property of Texas Guadaloop, a student-led hyperloop team from the University of Texas at Austin.
+
+To be able to run all python files in the repo, run ```pip install -r requirements.txt```
