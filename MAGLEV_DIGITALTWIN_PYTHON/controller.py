@@ -14,13 +14,21 @@ class DecentralizedPIDController:
     
     def __init__(self):
         # Persistent variables (maintain state between calls)
-        self.preverror = np.zeros(4)
-        self.cumerror = np.zeros(4)
+        self.preverror = 0
+        self.cumerror = 0
+        self.prevErrLR = 0
+        self.cumErrLR = 0
+        self.prevErrFB = 0
+        self.cumErrFB = 0
     
     def reset(self):
         """Reset persistent variables"""
-        self.preverror = np.zeros(4)
-        self.cumerror = np.zeros(4)
+        self.preverror = 0
+        self.cumerror = 0
+        self.prevErrLR = 0
+        self.cumErrLR = 0
+        self.prevErrFB = 0
+        self.cumErrFB = 0
     
     def control(self, R, S, P):
         """
@@ -65,33 +73,57 @@ class DecentralizedPIDController:
         gaps = np.abs(zcg) - np.array([0, 0, 1]) @ RBI.T @ rl
         gaps = gaps.flatten()
         
-        # Controller gains
-        kp = 10000
+        # Controller gains - average gap control
+        kp = 14000
         ki = 0
-        kd = 50000
+        kd = 80000
+        
+        # Left-Right differential gains
+        kpLR = 6000
+        kiLR = 0
+        kdLR = 12000
+        
+        # Front-Back differential gains
+        kpFB = 6000
+        kiFB = 0
+        kdFB = 12000
         
         # Reference z position
         refz = R['rIstark'][2]
-        meangap = np.mean(gaps)
         
-        # Transform gaps using corner-based sensing
-        # gaps indices: 0=front, 1=right, 2=back, 3=left
-        gaps_transformed = np.array([
-            gaps[0] + gaps[3] - meangap,  # gaps(1)+gaps(4)-meangap in MATLAB
-            gaps[0] + gaps[1] - meangap,  # gaps(1)+gaps(2)-meangap
-            gaps[2] + gaps[1] - meangap,  # gaps(3)+gaps(2)-meangap
-            gaps[2] + gaps[3] - meangap   # gaps(3)+gaps(4)-meangap
-        ])
-        
-        # Calculate error for each yoke
-        err = -refz - gaps_transformed
+        # Calculate average gap and scalar error
+        avg_gap = np.mean(gaps)
+        err = -refz - avg_gap
         derr = err - self.preverror
-        
         self.preverror = err
-        self.cumerror = self.cumerror + err
+        self.cumerror += err
         
-        # Calculate desired voltages
-        eadesired = kp * err + derr * kd + ki * self.cumerror
+        # Difference between long-side sensors (left - right)
+        # gaps indices: 0=front, 1=right, 2=back, 3=left
+        long_side_err = gaps[3] - gaps[1]  # left - right
+        long_side_derr = long_side_err - self.prevErrLR
+        self.cumErrLR += long_side_err
+        self.prevErrLR = long_side_err
+        
+        # Difference between short-side sensors (front - back)
+        short_side_err = gaps[0] - gaps[2]  # front - back
+        short_side_derr = short_side_err - self.prevErrFB
+        self.cumErrFB += short_side_err
+        self.prevErrFB = short_side_err
+        
+        # Apply same control to all yokes based on average error
+        eadesired = (kp * err + derr * kd + ki * self.cumerror) * np.ones(4)
+        
+        # Negate since we're trying to counteract whatever error is happening
+        eaLR = -(kpLR * long_side_err + kdLR * long_side_derr + kiLR * self.cumErrLR)
+        eaFB = -(kpFB * short_side_err + kdFB * short_side_derr + kiFB * self.cumErrFB)
+        
+        # Apply differential corrections
+        # Pattern: [FL, FR, BL, BR] = [front-left, front-right, back-left, back-right]
+        # LR: [1, -1, -1, 1] means left side gets +, right side gets -
+        # FB: [1, 1, -1, -1] means front gets +, back gets -
+        eadesired += eaLR * np.array([1, -1, -1, 1])
+        eadesired += eaFB * np.array([1, 1, -1, -1])
         
         # Apply saturation
         s = np.sign(eadesired)
