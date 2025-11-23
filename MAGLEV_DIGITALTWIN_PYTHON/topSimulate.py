@@ -5,7 +5,6 @@ Ported from topSimulate.m to Python
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation, PillowWriter
 from parameters import QuadParams, Constants
 from utils import euler2dcm, fmag2
 from simulate import simulate_maglev_control
